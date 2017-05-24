@@ -1,0 +1,45 @@
+#!/usr/bin/ruby
+@versions = [
+	"5.6",
+	"7.1"
+]
+
+# Get the desired version from input
+puts "Enter your desired version from: " + @versions.join(', ')
+@desiredVersion = gets.chomp
+@currentVersionString = `php -v`
+
+if @currentVersionString.include? @desiredVersion
+	puts "Already running PHP version #{@desiredVersion}"
+	exit
+end
+
+# Ensure we have a valid version
+if !@versions.include? @desiredVersion
+	puts "Incorrect PHP Version."
+	exit
+end
+
+# Remove desired version
+@versions.delete(@desiredVersion)
+
+# Stop/unlink all undesired versions
+@versions.each do | version |
+	version = version.sub!('.', '')
+	serviceName = "php#{version}"
+
+	puts "Stopping service #{serviceName}"
+	`brew services stop #{serviceName}`
+
+	puts "Unlinking #{serviceName}"
+	`brew unlink #{serviceName}`
+end
+
+@desiredVersion.sub!('.', '')
+serviceName = "php#{@desiredVersion}"
+
+puts "Starting service #{serviceName}"
+`brew services start #{serviceName}`
+
+puts "Linking #{serviceName}"
+`brew link #{serviceName}`
